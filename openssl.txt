@@ -1,0 +1,74 @@
+AES in ECB mode:
+   Encrypt:
+     openssl enc -aes-256-ecb -in input.txt -out encrypted.bin
+   Decrypt:
+     openssl enc -d -aes-256-ecb -in encrypted.bin -out decrypted.txt
+
+AES in CBC mode:
+    Encrypt:
+      openssl enc -aes-256-cbc -in input.txt -out encrypted.bin
+    Decrypt:
+       openssl enc -d -aes-256-cbc -in encrypted.bin -out decrypted.txt
+
+Compare ECB vs CBC Security Properties:
+     ECB (Electronic Codebook): Weakest mode. Identical plaintext blocks are encrypted into identical ciphertext blocks. This means patterns in the original data (like an image) remain visible in the encrypted data. It does not use an Initialization Vector (IV).
+
+     CBC (Cipher Block Chaining): Highly secure. It XORs each plaintext block with the previous ciphertext block before encrypting. It uses an IV for the first block. Identical plaintext blocks produce completely different ciphertext blocks, successfully hiding all data patterns.
+
+
+RSA Encryption (Asymmetric)
+     Generate Private Key:
+        openssl genrsa -out private.pem 2048
+     Extract Public Key (from the private key):
+        openssl rsa -in private.pem -pubout -out public.pem
+
+     Encrypt and Decrypt using RSA:
+       Encrypt:
+          openssl pkeyutl -encrypt -in msg.txt -pubin -inkey public.pem -out msg.enc
+       Decrypt:
+          openssl pkeyutl -decrypt -in msg.enc -inkey private.pem -out msg.dec
+
+Hashing & Digests
+     MD5:
+         openssl dgst -md5 input.txt
+
+     SHA256:
+         openssl dgst -sha256 input.txt
+MD5 (Message Digest 5):
+   The Problem: Because the hash is only 128 bits long, there is a  limited number of possible outputs. Computing power has grown so much that attackers can now reliably generate two completely different files that produce the exact same MD5 hash (this is called a collision attack).
+
+   Current Usage: You should never use MD5 for passwords, digital signatures, or anything requiring security. It is still occasionally used to verify that a file didn't get corrupted during a routine download (a checksum), but even for this, most systems are moving to safer alternatives.
+
+SHA256:
+    SHA-256 is part of the SHA-2 family of hashing algorithms, designed by the NSA. It produces a much larger 256-bit hash.
+
+    The Advantage: The number of possible SHA-256 hashes is astronomically large ($2^{256}$). This makes brute-forcing or finding a collision practically impossible with current computing technology. Even the world's most powerful supercomputers would take millions of years to find two files with the same SHA-256 hash.
+
+    Current Usage: SHA-256 is everywhere in modern cybersecurity. It is the backbone of SSL/TLS certificates (which keep web browsing secure), SSH protocols, cryptocurrency proof-of-work (like Bitcoin), and secure document signing.
+
+
+Digital Certificates:
+    Generate the Private Key:
+        openssl genrsa -out server.key 2048
+    Generate the Certificate Signing Request (CSR):
+        openssl req -new -key server.key -out server.csr
+    Sign the Certificate (For testing only):
+        openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+    Verify your certificate:
+        openssl x509 -in certificate.crt -text -noout
+
+     flags mean:
+
+req: Tells OpenSSL to use the certificate request handling subsystem.
+
+-x509: Specifies that you want to create a self-signed certificate rather than a standard certificate request (CSR).
+
+-newkey rsa:4096: Generates a new RSA key that is 4096 bits long.
+
+-keyout / -out: Names the output files for your key and certificate.
+
+-days 365: Sets the certificate to expire in one year.
+
+-nodes: (No DES) Tells OpenSSL not to encrypt the private key with a passphrase, which is helpful so your backend server can start up automatically without prompting you for a password.
+
+
