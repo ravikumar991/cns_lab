@@ -1,0 +1,94 @@
+IPTABLES
+
+Block ICMP Packets
+
+iptables -A INPUT -p icmp -j DROP
+
+
+
+
+Allow Only SSH from Outside
+
+Step 1 — Allow SSH
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+Step 2 — Block Everything Else
+sudo iptables -A INPUT -j DROP
+
+
+
+
+
+Allow Everything Except SSH
+
+Step 1 — Block SSH
+sudo iptables -A INPUT -p tcp --dport 22 -j DROP
+
+Step 2 — Allow Everything Else
+sudo iptables -A INPUT -j ACCEPT
+
+
+
+
+
+Allow Specific Port
+
+Allow HTTP:
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+
+HTTPS
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+
+TCP
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+
+UDP
+sudo iptables -A INPUT -p udp --dport 53 -j ACCEPT
+
+
+
+
+
+
+
+Block Specific IP
+sudo iptables -A INPUT -s 192.168.1.5 -j DROP
+
+Block Destination IP
+sudo iptables -A OUTPUT -d 192.168.1.5 -j DROP
+
+
+
+
+
+
+View Numbered Rules
+
+sudo iptables -L --line-numbers
+
+Delete Rule by Number
+
+sudo iptables -D INPUT 1
+
+
+
+
+
+Flush All Rules
+
+sudo iptables -F
+
+
+
+
+Flag	Meaning
+-A	append rule
+-D	delete rule
+-L	list rules
+-F	flush rules
+-P	set policy
+-p	protocol
+-s	source IP
+-d	destination IP
+--dport	destination port
+-j	jump target
