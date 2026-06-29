@@ -1,0 +1,407 @@
+monoalphabetic.c:
+
+#include <stdio.h>
+#include <string.h>
+
+// Function to calculate the Index of Coincidence (IoC)
+double calculateIoC(const char *text, int len) {
+    if (len <= 1) return 0.0;
+
+    int freq[256] = {0};
+
+    for (int i = 0; i < len; i++) {
+        // Cast to unsigned char to prevent negative indexing for extended ASCII
+        freq[(unsigned char)text[i]]++;
+    }
+
+    double sum = 0.0;
+    for (int i = 0; i < 256; i++) {
+        if (freq[i] > 1) {
+            sum += (double)freq[i] * (freq[i] - 1);
+        }
+    }
+
+    double denominator = (double)len * (len - 1);
+    return sum / denominator;
+}
+
+void encrypt(char *text, const char *key) {
+    for(int i = 0; text[i] != '\0'; i++) {
+        if(text[i] >= 32 && text[i] <= 126)
+            text[i] = key[text[i] - 32];
+    }
+}
+
+void decrypt(char *text, const char *key) {
+    for(int i = 0; text[i] != '\0'; i++) {
+        for (int j = 0; j < 95; j++) {
+            if (key[j] == text[i]) {
+                text[i] = j + 32;
+                break;
+            }
+        }
+    }
+}
+
+int main() {
+    char text[8192] = {0};
+    const char key[96] = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?`~ ";
+
+    FILE* inFile = fopen("input.txt", "r");
+    if (!inFile) {
+        perror("Failed to open file");
+        return 1;
+    }
+
+    size_t bytesRead = fread(text, sizeof(char), sizeof(text) - 1, inFile);
+    fclose(inFile);
+    text[bytesRead] = '\0';
+
+    printf("Original text:\n%s\n", text);
+    printf("--> Original IoC: %f\n\n", calculateIoC(text, strlen(text)));
+
+    encrypt(text, key);
+
+    FILE* outfile = fopen("encrypted.txt", "w");
+    fprintf(outfile, "%s", text);
+    fclose(outfile);
+
+    printf("Encrypted text (preview):\n%s\n", text);
+    printf("--> Encrypted IoC: %f\n\n", calculateIoC(text, strlen(text)));
+
+    decrypt(text, key);
+    printf("Decrypted text:\n%s\n", text);
+
+    return 0;
+}
+
+vignere.c:
+
+#include <stdio.h>
+#include <string.h>
+
+double calculateIoC(const char *text, int len) {
+    if (len <= 1) return 0.0;
+    int freq[256] = {0};
+    for (int i = 0; i < len; i++) {
+        freq[(unsigned char)text[i]]++;
+    }
+    double sum = 0.0;
+    for (int i = 0; i < 256; i++) {
+        if (freq[i] > 1) {
+            sum += (double)freq[i] * (freq[i] - 1);
+        }
+    }
+    double denominator = (double)len * (len - 1);
+    return sum / denominator;
+}
+
+void encrypt(char *text, const char *key) {
+    int keylen = strlen(key);
+    int keyindex = 0;
+
+    for (int i = 0; text[i] != '\0'; i++) {
+        if(text[i] >= 32 && text[i] <= 126) {
+            int textval = text[i] - 32;
+            int keyval = key[keyindex % keylen] - 32;
+            text[i] = ((textval + keyval) % 95) + 32;
+            keyindex++;
+        }
+    }
+}
+
+void decrypt(char *text, const char *key) {
+    int key_len = strlen(key);
+    int key_index = 0;
+
+    for (int i = 0; text[i] != '\0'; i++) {
+        if (text[i] >= 32 && text[i] <= 126) {
+            int text_val = text[i] - 32;
+            int key_val = key[key_index % key_len] - 32;
+            text[i] = ((text_val - key_val + 95) % 95) + 32;
+            key_index++;
+        }
+    }
+}
+
+int main() {
+    char text[8192] = {0};
+    char key[256];
+
+    printf("Enter a key: ");
+    fgets(key, sizeof(key), stdin);
+    key[strcspn(key, "\n")] = 0;
+
+    FILE* inFile = fopen("input.txt", "r");
+    if (!inFile) {
+        perror("Failed to open file");
+        return 1;
+    }
+
+    size_t bytesRead = fread(text, sizeof(char), sizeof(text) - 1, inFile);
+    fclose(inFile);
+    text[bytesRead] = '\0';
+
+    printf("Original text:\n%s\n", text);
+    printf("--> Original IoC: %f\n\n", calculateIoC(text, strlen(text)));
+
+    encrypt(text, key);
+
+    FILE* outFile = fopen("encrypted.txt", "w");
+    fprintf(outFile, "%s", text);
+    fclose(outFile);
+
+    printf("Encrypted text (preview):\n%s\n", text);
+    printf("--> Encrypted IoC: %f\n\n", calculateIoC(text, strlen(text)));
+
+    decrypt(text, key);
+    printf("Decrypted text:\n%s\n", text);
+
+    return 0;
+}
+
+
+playfair.c:
+
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+char matrix[16][16];
+
+double calculateIoC(const char *text, int len) {
+    if (len <= 1) return 0.0;
+    int freq[256] = {0};
+    for (int i = 0; i < len; i++) {
+        freq[(unsigned char)text[i]]++;
+    }
+    double sum = 0.0;
+    for (int i = 0; i < 256; i++) {
+        if (freq[i] > 1) {
+            sum += (double)freq[i] * (freq[i] - 1);
+        }
+    }
+    double denominator = (double)len * (len - 1);
+    return sum / denominator;
+}
+
+void matrixFormation(const char* key) {
+    int row = 0, col = 0;
+    int used[256] = {0};
+    char ch;
+
+    for (int i = 0; key[i] != '\0'; i++) {
+        ch = key[i];
+        if(!used[(unsigned char)ch]) {
+            matrix[row][col] = ch;
+            used[(unsigned char)ch] = 1;
+            col++;
+            if(col == 16) { col = 0; row = row + 1; }
+        }
+    }
+    for (int i = 0; i < 256; i++) {
+        if(!used[i]) {
+            matrix[row][col] = (char)i;
+            used[i] = 1;
+            col++;
+            if(col == 16) { col = 0; row = row + 1; }
+        }
+    }
+}
+
+void findPosition(unsigned char ch, int *row, int *col) {
+    for (int r = 0; r < 16; r++) {
+        for (int c = 0; c < 16; c++) {
+            if (matrix[r][c] == ch) {
+                *row = r; *col = c; return;
+            }
+        }
+    }
+}
+
+void encrypt(char *text) {
+    for (int i = 0; text[i] != '\0' && text[i+1] != '\0'; i += 2) {
+        int r1, c1, r2, c2;
+
+        findPosition(text[i], &r1, &c1);
+        findPosition(text[i+1], &r2, &c2);
+
+        if(r1 == r2) {
+            text[i] = matrix[r1][(c1 + 1) % 16];
+            text[i+1] = matrix[r2][(c2 + 1) % 16];
+        } else if(c1 == c2) {
+            text[i] = matrix[(r1 + 1) % 16][c1];
+            text[i+1] = matrix[(r2 + 1) % 16][c2];
+        } else {
+            text[i] = matrix[r1][c2];
+            text[i+1] = matrix[r2][c1];
+        }
+    }
+}
+
+void formatText(char *text, char *formatted) {
+    int len = strlen(text);
+    for (int i = 0; text[i] != '\0'; i++) {
+        formatted[i] = text[i];
+    }
+    formatted[len] = '\0';
+
+    for (int i = 0; formatted[i] != '\0'; i += 2) {
+        if((i + 1) < len && formatted[i] == formatted[i+1]) {
+            for(int j = len; j > i; j--) {
+                formatted[j] = formatted[j-1];
+            }
+            formatted[i+1] = 'X';
+            len++;
+            formatted[len] = '\0';
+        }
+    }
+}
+
+int main() {
+    char text[8192] = {0};
+    char formatted[9000] = {0};
+    char key[256];
+
+    printf("Enter a key: ");
+    fgets(key, sizeof(key), stdin);
+    key[strcspn(key, "\n")] = 0;
+
+    matrixFormation(key);
+
+    FILE* inFile = fopen("input.txt", "r");
+    if (!inFile) {
+        perror("Failed to open file");
+        return 1;
+    }
+
+    size_t bytesRead = fread(text, sizeof(char), sizeof(text) - 1, inFile);
+    fclose(inFile);
+    text[bytesRead] = '\0';
+
+    printf("Original text IoC: %f\n\n", calculateIoC(text, strlen(text)));
+
+    formatText(text, formatted);
+    printf("Text after formatting:\n%s\n", formatted);
+
+    encrypt(formatted);
+
+    FILE* outFile = fopen("encrypt.txt", "w");
+    fprintf(outFile, "%s", formatted);
+    fclose(outFile);
+
+    printf("Encrypted text:\n%s\n", formatted);
+    printf("--> Encrypted IoC: %f\n", calculateIoC(formatted, strlen(formatted)));
+
+    return 0;
+}
+
+
+rsa:
+
+#include <stdio.h>
+
+long long gcd(long long a, long long b) {
+    while (b != 0) {
+        long long temp = b;
+        b = a % b;
+        a = temp; }
+        return a;
+}
+
+
+long long mod_inverse(long long e, long long phi) {
+    long long t1 = 0, t2 = 1, r1 = phi, r2 = e;
+    while (r2 != 0) {
+        long long quotient = r1 / r2;
+        long long t = t1 - quotient * t2; t1 = t2; t2 = t;
+        long long r = r1 - quotient * r2; r1 = r2; r2 = r;
+    }
+    if (t1 < 0) t1 = t1 + phi;
+    return t1;
+}
+
+
+long long mod_exp(long long base, long long exp, long long mod) {
+    long long result = 1; base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1)
+            result = (result * base) % mod;
+        exp = exp >> 1; base = (base * base) % mod;
+    }
+    return result;
+}
+
+int main() {
+
+
+    long long p = 61;
+    long long q = 53;
+
+
+    long long n = p * q;
+
+
+    long long phi = (p - 1) * (q - 1); // For 61 and 53, phi is 3120.
+
+
+    long long e = 17;
+
+
+    long long d = mod_inverse(e, phi); // d becomes 2753
+
+    // --- Setup Complete! Let's print our keys ---
+    printf("PUBLIC KEY  (Give to everyone) : Padlock (e)=%lld, Modulus (n)=%lld\n", e, n);
+    printf("PRIVATE KEY (Keep hidden!)     : Key (d)=%lld, Modulus (n)=%lld\n\n", d, n);
+
+
+
+    long long original_message = 65;
+
+
+    long long ciphertext = mod_exp(original_message, e, n);
+
+    printf("Original Message: %lld\n", original_message);
+    printf("Encrypted Cipher: %lld (This is what travels across the internet)\n", ciphertext);
+
+
+    long long decrypted_message = mod_exp(ciphertext, d, n);
+
+    printf("Decrypted Message: %lld (The math perfectly reverses!)\n", decrypted_message);
+
+    return 0;
+}
+
+bithday_attack:
+
+#!/bin/bash
+
+# Declare an associative array to store our hashes
+declare -A hashes
+count=0
+
+echo "Hunting for a partial collision (first 5 chars of MD5)..."
+
+while true; do
+    # Generate a random message using the built-in $RANDOM variable
+    msg="test_message_$RANDOM"
+
+    # Get the MD5 hash using OpenSSL, extract the hash, and grab the first 5 chars
+    full_hash=$(echo -n "$msg" | openssl dgst -md5 | awk '{print $NF}')
+    short_hash=${full_hash:0:5}
+
+    count=$((count + 1))
+
+    # Check if the short hash already exists in our array
+    if [[ -n "${hashes[$short_hash]}" ]]; then
+        echo -e "\nCollision found!"
+        echo "Message 1: ${hashes[$short_hash]}"
+        echo "Message 2: $msg"
+        echo "Hash (truncated): $short_hash"
+        echo "Attempts required: $count"
+        break
+    else
+        # Save it to the array
+        hashes[$short_hash]=$msg
+    fi
+done
