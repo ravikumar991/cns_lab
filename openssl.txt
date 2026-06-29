@@ -72,3 +72,33 @@ req: Tells OpenSSL to use the certificate request handling subsystem.
 -nodes: (No DES) Tells OpenSSL not to encrypt the private key with a passphrase, which is helpful so your backend server can start up automatically without prompting you for a password.
 
 
+
+Digital Signature
+
+
+# Generate RSA Private Key
+openssl genrsa -out private.pem 2048
+
+# View Private Key
+openssl rsa -in private.pem -text -noout
+
+# Generate Public Key
+openssl rsa -in private.pem -pubout -out public.pem
+
+# View Public Key
+openssl rsa -pubin -in public.pem -text -noout
+
+# Create Message
+echo "Hello Digital Signature" > message.txt
+
+# View Message
+cat message.txt
+
+# Generate SHA-256 Digest
+openssl dgst -sha256 message.txt
+
+# Generate Digital Signature
+openssl dgst -sha256 -sign private.pem -out signature.bin message.txt
+
+# Verify Digital Signature
+openssl dgst -sha256 -verify public.pem -signature signature.bin message.txt
