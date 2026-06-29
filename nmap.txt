@@ -1,0 +1,104 @@
+TCP port scan:
+
+    nmap -sT -p 80 -Pn 45.33.32.156
+
+    How it works: It completes the standard TCP 3-way handshake.
+
+      Attacker sends SYN.
+      Target replies with SYN-ACK (if the port is open).
+      Attacker replies with ACK (connection established).
+      Attacker immediately tears down the connection.
+
+UDP port scan:
+
+    sudo nmap -sU -Pn 45.33.32.156
+
+Stealth Scan:
+
+    nmap -sT -p 80 -Pn 45.33.32.156
+
+    How it works: It starts the handshake but intentionally aborts it.
+
+      Attacker sends SYN.
+      Target replies with SYN-ACK (if the port is open).
+      Attacker immediately sends an RST (Reset) packet instead of an ACK.
+
+Service Version & OS Detection:
+    sudo nmap -sV -O localhost
+
+
+
+ICMP protocol:
+    ICMP (Internet Control Message Protocol) is essentially the diagnostic and error-reporting system of the internet.
+
+
+ARP Protocol:
+
+    The Address Resolution Protocol (ARP) is used to map a dynamic Network Layer address (like an IPv4 address) to a static Data Link Layer physical address (MAC address) on a local area network. When a device wants to send data to another device on the same subnet, it uses ARP to discover the target's MAC address.
+
+    ARP cache display:
+        arp -a or ip neigh
+
+    172.17.0.1     dev wlp0s20f3  lladdr 00:04:96:1e:d0:90  STALE
+    172.17.5.100   dev wlp0s20f3  lladdr 98:bd:80:54:2c:a7  STALE
+    172.17.0.101   dev wlp0s20f3  lladdr 1a:c2:41:c6:22:59  REACHABLE
+
+    1. The IP Address (172.17.0.101)
+    This is the logical network address of the "neighbor" device on your local network.
+
+    2. The Interface (dev wlp0s20f3)
+    dev stands for device. This tells you which of your computer's network adapters is being used to communicate with that IP address.
+
+    Note: In Linux, interface names starting with wl or wlp typically indicate a wireless (Wi-Fi) connection. If you were plugged in with a cable, it might say something like eth0 or enp3s0.
+
+    3. The MAC Address (lladdr 1a:c2:41:c6:22:59)
+    lladdr stands for Link Layer Address. This is the physical, hardware MAC address of the neighbor device that corresponds to the IP address on the left.
+
+    4. The State (REACHABLE / STALE)
+    This is the most important part of the modern ip neigh command. Because the ARP cache is temporary, it tracks how "fresh" the information is.
+
+    REACHABLE: Your computer has successfully communicated with this device very recently. It is 100% confident that this MAC address is accurate and the device is currently online.
+
+    STALE: Your computer remembers this MAC address from a past conversation, but it has been a little while since they last spoke. The information is kept in the cache just in case, but if your computer needs to send new data to this IP, it will ping it first to verify it is still there before trusting the cached MAC address.
+
+    (Other states you might see sometimes include DELAY (waiting for a response) or FAILED (the device could not be found)).
+
+Proxy Server:
+
+    At its core, a proxy server is a middleman or an intermediary between your computer and the internet.
+
+    Instead of your device communicating directly with a website's server, your device talks to the proxy, the proxy talks to the website, and then the proxy passes the website's response back to you.
+
+
+Ephemeral No.:
+
+    An ephemeral port is a temporary, short-lived port number assigned automatically by a machine's operating system when a client application initiates a connection to a server.
+
+
+Significance of time to live field in TCP segment:
+
+    The TTL field prevents data packets from circulating endlessly in a network if there is a routing loop or configuration error.
+
+
+Fields of a typical forwarding table and their meaning:
+
+    Destination Network / IP Address: The target network or specific IP address the packet is trying to reach.
+
+    Subnet Mask (or Netmask): Used in conjunction with the destination network to determine the exact range of IP addresses that belong to that specific route.
+
+    Next Hop (or Gateway): The IP address of the next immediate router that the packet needs to be sent to in order to eventually reach its destination.
+
+    Interface (or Port): The physical or logical network port on the router itself (e.g., eth0, GigabitEthernet0/1) that the packet should be sent out of to reach the Next Hop.
+
+    Metric (or Cost): A numerical value indicating the "cost" or distance of the route. If there are multiple paths to the same destination, the router will choose the path with the lowest metric. Cost can be based on hop count, bandwidth, or delay.
+
+
+TraceRoute:
+
+    The traceroute (or tracert on Windows) command is a network diagnostic tool used to map the exact pathway a packet takes from your computer to a target destination (like a web server).
+
+    It identifies every router (hop) the data passes through along the way and measures the transit delay (latency) between each one.
+
+    traceroute 8.8.8.8
+
+
