@@ -405,3 +405,99 @@ while true; do
         hashes[$short_hash]=$msg
     fi
 done
+
+kasiski Test:
+#include <stdio.h>
+#include <string.h>
+
+// Function to find repeating sequences (length 3) and their distances
+void kasiskiTest(const char *text) {
+    int len = strlen(text);
+    int seq_len = 3; // We look for Trigrams (3-letter patterns)
+
+    printf("Seq | Pos1 | Pos2 | Distance\n");
+    printf("----------------------------\n");
+
+    // Brute-force search for matching 3-letter blocks
+    for (int i = 0; i <= len - seq_len; i++) {
+        
+        // 1. Skip if we already checked this exact sequence earlier to avoid duplicate prints
+        int already_checked = 0;
+        for (int k = 0; k < i; k++) {
+            if (strncmp(&text[k], &text[i], seq_len) == 0) {
+                already_checked = 1;
+                break;
+            }
+        }
+        if (already_checked) continue;
+
+        // 2. Search forward for matches
+        for (int j = i + 1; j <= len - seq_len; j++) {
+            if (strncmp(&text[i], &text[j], seq_len) == 0) {
+                int distance = j - i;
+                
+                // "%.3s" prints exactly 3 characters starting from the pointer
+                printf("%.3s | %4d | %4d | %4d\n", &text[i], i, j, distance);
+            }
+        }
+    }
+}
+
+int main() {
+    // Example ciphertext where the word "CRYPTO" repeats
+    const char *ciphertext = "CRYPTOISFUNCRYPTOISGREATBUTCRYPTOISHARD";
+
+    printf("Running Kasiski Examination...\n\n");
+    kasiskiTest(ciphertext);
+
+    printf("\nNext step: Find the common factors (GCD) of the distances above.\n");
+    printf("The keyword length is likely one of those factors.\n");
+    
+    return 0;
+}
+
+
+extended euclid:
+#include <stdio.h>
+
+// Recursive function for Extended Euclidean Algorithm
+int extendedEuclid(int a, int b, int *x, int *y) {
+    // Base Case: When 'a' becomes 0, the GCD is 'b'
+    if (a == 0) {
+        *x = 0;
+        *y = 1;
+        return b;
+    }
+
+    // Variables to store the results of the recursive call
+    int x1, y1; 
+    
+    // Recursive call: swap 'a' with 'b % a', and 'b' with 'a'
+    int gcd = extendedEuclid(b % a, a, &x1, &y1);
+
+    // Update x and y using the results from the recursion
+    *x = y1 - (b / a) * x1;
+    *y = x1;
+
+    return gcd;
+}
+
+int main() {
+    int a = 35, b = 15;
+    int x, y; // Pointers will update these variables
+
+    int gcd = extendedEuclid(a, b, &x, &y);
+
+    printf("--- Extended Euclidean Algorithm ---\n");
+    printf("a = %d, b = %d\n\n", a, b);
+    
+    printf("GCD is: %d\n", gcd);
+    printf("Coefficients x and y are: %d and %d\n\n", x, y);
+    
+    // Proof that ax + by = gcd(a, b)
+    printf("Proof Equation (ax + by = GCD):\n");
+    printf("(%d * %d) + (%d * %d) = %d\n", a, x, b, y, (a * x) + (b * y));
+
+    return 0;
+}
+
