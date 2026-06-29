@@ -1,41 +1,19 @@
 monoalphabetic.c:
 
-#include <stdio.h>
-#include <string.h>
-
-// Function to calculate the Index of Coincidence (IoC)
-double calculateIoC(const char *text, int len) {
-    if (len <= 1) return 0.0;
-
-    int freq[256] = {0};
-
-    for (int i = 0; i < len; i++) {
-        // Cast to unsigned char to prevent negative indexing for extended ASCII
-        freq[(unsigned char)text[i]]++;
-    }
-
-    double sum = 0.0;
-    for (int i = 0; i < 256; i++) {
-        if (freq[i] > 1) {
-            sum += (double)freq[i] * (freq[i] - 1);
-        }
-    }
-
-    double denominator = (double)len * (len - 1);
-    return sum / denominator;
-}
-
-void encrypt(char *text, const char *key) {
-    for(int i = 0; text[i] != '\0'; i++) {
+#include<stdio.h>
+#include<string.h>
+void encrypt(char *text,const char *key){
+    for(int i=0; text[i]!='\0';i++){
         if(text[i] >= 32 && text[i] <= 126)
-            text[i] = key[text[i] - 32];
+            text[i] = key[text[i]-32];
     }
 }
 
-void decrypt(char *text, const char *key) {
-    for(int i = 0; text[i] != '\0'; i++) {
+void decrypt(char *text, const char *key){
+    for(int i=0; text[i]!='\0';i++){
         for (int j = 0; j < 95; j++) {
             if (key[j] == text[i]) {
+
                 text[i] = j + 32;
                 break;
             }
@@ -43,68 +21,50 @@ void decrypt(char *text, const char *key) {
     }
 }
 
-int main() {
+
+int main(){
     char text[8192] = {0};
     const char key[96] = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?`~ ";
-
-    FILE* inFile = fopen("input.txt", "r");
+    FILE* inFile = fopen("input.txt","r");
     if (!inFile) {
         perror("Failed to open file");
         return 1;
     }
 
-    size_t bytesRead = fread(text, sizeof(char), sizeof(text) - 1, inFile);
+    // Capture the number of bytes actually read
+    fread(text, sizeof(char), sizeof(text)-1, inFile);
     fclose(inFile);
-    text[bytesRead] = '\0';
+
+    // Explicitly set the null terminator
 
     printf("Original text:\n%s\n", text);
-    printf("--> Original IoC: %f\n\n", calculateIoC(text, strlen(text)));
 
     encrypt(text, key);
-
-    FILE* outfile = fopen("encrypted.txt", "w");
+    FILE* outfile = fopen("encrypted.txt","w");
     fprintf(outfile, "%s", text);
     fclose(outfile);
-
-    printf("Encrypted text (preview):\n%s\n", text);
-    printf("--> Encrypted IoC: %f\n\n", calculateIoC(text, strlen(text)));
-
-    decrypt(text, key);
-    printf("Decrypted text:\n%s\n", text);
-
+    decrypt(text,key);
+    printf("Decrypted text:\n%s\n",text);
     return 0;
 }
 
+
 vignere.c:
 
-#include <stdio.h>
-#include <string.h>
+#include<stdio.h>
+#include<string.h>
 
-double calculateIoC(const char *text, int len) {
-    if (len <= 1) return 0.0;
-    int freq[256] = {0};
-    for (int i = 0; i < len; i++) {
-        freq[(unsigned char)text[i]]++;
-    }
-    double sum = 0.0;
-    for (int i = 0; i < 256; i++) {
-        if (freq[i] > 1) {
-            sum += (double)freq[i] * (freq[i] - 1);
-        }
-    }
-    double denominator = (double)len * (len - 1);
-    return sum / denominator;
-}
-
-void encrypt(char *text, const char *key) {
+void encrypt(char *text, const char *key){
     int keylen = strlen(key);
     int keyindex = 0;
 
-    for (int i = 0; text[i] != '\0'; i++) {
-        if(text[i] >= 32 && text[i] <= 126) {
+    for (int i=0; text[i]!='\0';i++){
+        if(text[i] >= 32 && text[i] <= 126){
             int textval = text[i] - 32;
             int keyval = key[keyindex % keylen] - 32;
+
             text[i] = ((textval + keyval) % 95) + 32;
+
             keyindex++;
         }
     }
@@ -116,95 +76,79 @@ void decrypt(char *text, const char *key) {
 
     for (int i = 0; text[i] != '\0'; i++) {
         if (text[i] >= 32 && text[i] <= 126) {
+
             int text_val = text[i] - 32;
             int key_val = key[key_index % key_len] - 32;
+
+            // Shift backward. Add +95 before the modulo to protect against negative results in C!
             text[i] = ((text_val - key_val + 95) % 95) + 32;
+
             key_index++;
         }
     }
 }
 
-int main() {
+int main(){
     char text[8192] = {0};
     char key[256];
 
     printf("Enter a key: ");
-    fgets(key, sizeof(key), stdin);
-    key[strcspn(key, "\n")] = 0;
+    fgets(key,sizeof(key), stdin);
+    key[strcspn(key,"\n")]=0;
 
-    FILE* inFile = fopen("input.txt", "r");
-    if (!inFile) {
-        perror("Failed to open file");
-        return 1;
-    }
-
-    size_t bytesRead = fread(text, sizeof(char), sizeof(text) - 1, inFile);
-    fclose(inFile);
-    text[bytesRead] = '\0';
-
-    printf("Original text:\n%s\n", text);
-    printf("--> Original IoC: %f\n\n", calculateIoC(text, strlen(text)));
+    FILE* inFile = fopen("input.txt","r");
+    fread(text, sizeof(char), sizeof(text)-1, inFile);
+    printf("Original text:\n%s\n",text);
 
     encrypt(text, key);
-
-    FILE* outFile = fopen("encrypted.txt", "w");
+    FILE* outFile = fopen("encrypted.txt","w");
     fprintf(outFile, "%s", text);
     fclose(outFile);
 
-    printf("Encrypted text (preview):\n%s\n", text);
-    printf("--> Encrypted IoC: %f\n\n", calculateIoC(text, strlen(text)));
-
-    decrypt(text, key);
-    printf("Decrypted text:\n%s\n", text);
+    decrypt(text,key);
+    printf("Decrypted text:\n%s\n",text);
 
     return 0;
+
 }
+
 
 
 playfair.c:
 
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-
+#include<stdio.h>
+#include<string.h>
+#include<ctype.h>
 char matrix[16][16];
 
-double calculateIoC(const char *text, int len) {
-    if (len <= 1) return 0.0;
-    int freq[256] = {0};
-    for (int i = 0; i < len; i++) {
-        freq[(unsigned char)text[i]]++;
-    }
-    double sum = 0.0;
-    for (int i = 0; i < 256; i++) {
-        if (freq[i] > 1) {
-            sum += (double)freq[i] * (freq[i] - 1);
-        }
-    }
-    double denominator = (double)len * (len - 1);
-    return sum / denominator;
-}
-
-void matrixFormation(const char* key) {
+void matrixFormation(const char* key){
     int row = 0, col = 0;
     int used[256] = {0};
     char ch;
-
-    for (int i = 0; key[i] != '\0'; i++) {
+    for (int i = 0; key[i]!='\0';i++){
         ch = key[i];
-        if(!used[(unsigned char)ch]) {
+
+        if(!used[ch]){
             matrix[row][col] = ch;
-            used[(unsigned char)ch] = 1;
+            used[ch] = 1;
             col++;
-            if(col == 16) { col = 0; row = row + 1; }
+
+            if(col == 16){
+                col = 0;
+                row = row + 1;
+            }
         }
     }
-    for (int i = 0; i < 256; i++) {
-        if(!used[i]) {
+    for (int i = 0; i < 256; i++){
+        if(!used[i]){
             matrix[row][col] = (char)i;
-            used[i] = 1;
+            used[ch] = 1;
             col++;
-            if(col == 16) { col = 0; row = row + 1; }
+
+            if(col == 16){
+                col = 0;
+                row = row + 1;
+            }
         }
     }
 }
@@ -213,88 +157,82 @@ void findPosition(unsigned char ch, int *row, int *col) {
     for (int r = 0; r < 16; r++) {
         for (int c = 0; c < 16; c++) {
             if (matrix[r][c] == ch) {
-                *row = r; *col = c; return;
+                *row = r;
+                *col = c;
+                return;
             }
         }
     }
 }
 
-void encrypt(char *text) {
-    for (int i = 0; text[i] != '\0' && text[i+1] != '\0'; i += 2) {
-        int r1, c1, r2, c2;
+void encrypt(char *text){
+    int len = strlen(text);
+
+    for (int i = 0; text[i]!='\0'; i+=2){
+        int r1,c1,r2,c2;
 
         findPosition(text[i], &r1, &c1);
         findPosition(text[i+1], &r2, &c2);
 
-        if(r1 == r2) {
-            text[i] = matrix[r1][(c1 + 1) % 16];
-            text[i+1] = matrix[r2][(c2 + 1) % 16];
-        } else if(c1 == c2) {
-            text[i] = matrix[(r1 + 1) % 16][c1];
-            text[i+1] = matrix[(r2 + 1) % 16][c2];
-        } else {
+        if(r1 == r2){
+            text[i] = matrix[r1][(c1+1)%16];
+            text[i+1] = matrix[r2][(c2+1)%16];
+        }
+        else if(c1 == c2){
+            text[i] = matrix[(r1+1)%16][c1];
+            text[i+1] = matrix[(r2+1)%16][c2];
+        }
+        else{
             text[i] = matrix[r1][c2];
             text[i+1] = matrix[r2][c1];
         }
     }
 }
-
-void formatText(char *text, char *formatted) {
+void formatText(char *text,char *formatted){
     int len = strlen(text);
-    for (int i = 0; text[i] != '\0'; i++) {
-        formatted[i] = text[i];
+    for (int i = 0; text[i]!='\0';i++){
+        formatted[i]=text[i];
     }
-    formatted[len] = '\0';
 
-    for (int i = 0; formatted[i] != '\0'; i += 2) {
-        if((i + 1) < len && formatted[i] == formatted[i+1]) {
-            for(int j = len; j > i; j--) {
+    formatted[len]='\0';
+
+    for (int i = 0; text[i]!='\0';i+=2){
+        if((i+1)<len && formatted[i] == formatted[i+1]){
+            for(int j=len; j > i; j--){
                 formatted[j] = formatted[j-1];
             }
             formatted[i+1] = 'X';
             len++;
             formatted[len] = '\0';
+
         }
     }
 }
 
-int main() {
+int main(){
     char text[8192] = {0};
     char formatted[9000] = {0};
     char key[256];
 
     printf("Enter a key: ");
-    fgets(key, sizeof(key), stdin);
-    key[strcspn(key, "\n")] = 0;
+    fgets(key,sizeof(key),stdin);
+    key[strcspn(key,"\n")] = 0;
 
     matrixFormation(key);
 
-    FILE* inFile = fopen("input.txt", "r");
-    if (!inFile) {
-        perror("Failed to open file");
-        return 1;
-    }
-
-    size_t bytesRead = fread(text, sizeof(char), sizeof(text) - 1, inFile);
+    FILE* inFile = fopen("input.txt","r");
+    fread(text,sizeof(char),sizeof(text),inFile);
     fclose(inFile);
-    text[bytesRead] = '\0';
 
-    printf("Original text IoC: %f\n\n", calculateIoC(text, strlen(text)));
-
-    formatText(text, formatted);
-    printf("Text after formatting:\n%s\n", formatted);
+    formatText(text,formatted);
+    printf("Text after formatting:\n%s\n",formatted);
 
     encrypt(formatted);
-
-    FILE* outFile = fopen("encrypt.txt", "w");
-    fprintf(outFile, "%s", formatted);
+    FILE* outFile = fopen("encrypt.txt","w");
+    fprintf(outFile,"%s",formatted);
     fclose(outFile);
-
-    printf("Encrypted text:\n%s\n", formatted);
-    printf("--> Encrypted IoC: %f\n", calculateIoC(formatted, strlen(formatted)));
-
-    return 0;
 }
+
 
 
 rsa:
