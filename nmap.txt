@@ -101,4 +101,42 @@ TraceRoute:
 
     traceroute 8.8.8.8
 
+IP ADDRESS CLASSES REFERENCE SHEET
+==================================
+
+CLASS A
+-------
+First Octet Range:   0 to 127
+Default Subnet Mask: 255.0.0.0
+Primary Purpose:     Massive networks with millions of hosts.
+Private Range:       10.0.0.0 to 10.255.255.255
+Note:                127.x.x.x is reserved for local loopback testing.
+
+CLASS B
+-------
+First Octet Range:   128 to 191
+Default Subnet Mask: 255.255.0.0
+Primary Purpose:     Medium to large networks.
+Private Range:       172.16.0.0 to 172.31.255.255
+
+CLASS C
+-------
+First Octet Range:   192 to 223
+Default Subnet Mask: 255.255.255.0
+Primary Purpose:     Small Local Area Networks (LANs).
+Private Range:       192.168.0.0 to 192.168.255.255
+
+CLASS D
+-------
+First Octet Range:   224 to 239
+Default Subnet Mask: None
+Primary Purpose:     Multicasting (broadcasting data to specific group endpoints).
+
+CLASS E
+-------
+First Octet Range:   240 to 255
+Default Subnet Mask: None
+Primary Purpose:     Experimental, research, and military study.
+
+
 
