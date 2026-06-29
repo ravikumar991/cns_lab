@@ -24,9 +24,9 @@ RSA Encryption (Asymmetric)
 
      Encrypt and Decrypt using RSA:
        Encrypt:
-          openssl pkeyutl -encrypt -in msg.txt -pubin -inkey public.pem -out msg.enc
+          openssl rsautl -encrypt -in msg.txt -pubin -inkey public.pem -out msg.enc
        Decrypt:
-          openssl pkeyutl -decrypt -in msg.enc -inkey private.pem -out msg.dec
+          openssl rsautl -decrypt -in msg.enc -inkey private.pem -out msg.dec
 
 Hashing & Digests
      MD5:
@@ -55,7 +55,7 @@ Digital Certificates:
     Sign the Certificate (For testing only):
         openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
     Verify your certificate:
-        openssl x509 -in certificate.crt -text -noout
+        openssl x509 -in server.crt -text -noout
 
      flags mean:
 
